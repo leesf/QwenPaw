@@ -205,26 +205,27 @@ jobs:
               --cov-report=term-missing
           else
             # Targeted coverage for affected channels only
-            COV_SOURCES="src/qwenpaw/app/channels/base.py"
+            # Build multiple --cov flags (pytest-cov does not accept comma-separated sources)
+            COV_ARGS="--cov=src/qwenpaw/app/channels/base.py"
 
             # Add affected channel sources
             for ch in ${{ needs.detect-changes.outputs.affected_channels }}; do
               if [ -d "src/qwenpaw/app/channels/$ch" ]; then
-                COV_SOURCES="$COV_SOURCES,src/qwenpaw/app/channels/$ch"
+                COV_ARGS="$COV_ARGS --cov=src/qwenpaw/app/channels/$ch"
               fi
             done
 
             # 1. Run unit tests with targeted coverage
             pytest tests/unit/channels/ \
               -v \
-              --cov="$COV_SOURCES" \
+              $COV_ARGS \
               --cov-report=xml:coverage.xml \
               --cov-report=term-missing
 
             # 2. Run contract tests and append coverage
             pytest tests/contract/channels/ \
               -v \
-              --cov="$COV_SOURCES" \
+              $COV_ARGS \
               --cov-append \
               --cov-report=xml:coverage.xml \
               --cov-report=term-missing
